@@ -116,8 +116,15 @@ async def handle_mcp_message(conn, mcp_client: MCPClient, payload: dict):
     logger.bind(tag=TAG).info(f"处理MCP消息: {str(payload)[:100]}")
 
     if not isinstance(payload, dict):
-        logger.bind(tag=TAG).error("MCP消息缺少payload字段或格式错误")
-        return
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except json.JSONDecodeError:
+                logger.bind(tag=TAG).error("MCP消息格式错误")
+                return
+        else:
+            logger.bind(tag=TAG).error("MCP消息缺少payload字段或格式错误")
+            return
 
     # Handle result
     if "result" in payload:
